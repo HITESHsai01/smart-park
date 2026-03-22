@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  role      Role     @default(DRIVER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String?
+  email     String   @unique
+  password  String?  
+  phone     String?  @unique
+
+  bookings Booking[]
+  owner    Owner?
+  vehicles Vehicle[]
+}
+
+model Vehicle {
+  id          String    @id @default(cuid())
+  plateNumber String
+  type        String
+  model       String?
+  userId      String
+  bookings    Booking[]
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Owner {
+  id          String       @id @default(cuid())
+  userId      String       @unique
+  documentUrl String?
+  verified    Boolean      @default(false)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parkingLots ParkingLot[]
+}
+
+model ParkingLot {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  country   String   @default("IN")
+  squareFeet Float?
+  capacity  Int      @default(1)
+  baseRate  Float    @default(50.0) // Price per hour
+  lat       Float?
+  lng       Float?
+  ownerId   String?
+  owner     Owner?   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  slots     Slot[]
+}
+
+model Slot {
+  id       String     @id @default(cuid())
+  number   String
+  size     String     @default("MEDIUM") // SMALL, MEDIUM, LARGE
+  lotId    String
+  status   SlotStatus @default(FREE)
+  bookings Booking[]
+  lot      ParkingLot @relation(fields: [lotId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  userId    String
+  slotId    String
+  startTime DateTime
+  endTime   DateTime?
+  amount    Float?
+  status    BookingStatus @default(ACTIVE)
+  vehicleId String
+  slot      Slot          @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  payment   Payment?
+}
+
+model Payment {
+  id        String  @id @default(cuid())
+  amount    Float
+  status    String
+  method    String
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  DRIVER
+  ADMIN
+  GUARD
+  OWNER
+}
+
+enum SlotStatus {
+  FREE
+  RESERVED
+  OCCUPIED
+}
+
+enum BookingStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
