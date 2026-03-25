@@ -8,7 +8,7 @@ export default async function OwnerDashboard() {
   const lands = await prisma.parkingLot.findMany({
     where: { ownerId: currentOwnerId },
     include: { slots: true }
-  });
+  }); 
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
