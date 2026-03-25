@@ -13,23 +13,67 @@ async function main() {
     },
   });
 
-  // 2. Parking lot
-  const lot = await prisma.parkingLot.create({
+  // 2. Parking lots with Bhopal coordinates
+  const lot1 = await prisma.parkingLot.create({
     data: {
-      name: "Main Parking",
-      address: "Campus Block A",
+      name: "Main Parking - MP Nagar",
+      address: "MP Nagar, Bhopal",
       baseRate: 50,
+      lat: 23.2599,
+      lng: 77.4126,
       ownerId: null,
     },
   });
 
-  // 3. Slots
+  const lot2 = await prisma.parkingLot.create({
+    data: {
+      name: "Central Parking - Market",
+      address: "New Market, Bhopal",
+      baseRate: 60,
+      lat: 23.2650,
+      lng: 77.4180,
+      ownerId: null,
+    },
+  });
+
+  const lot3 = await prisma.parkingLot.create({
+    data: {
+      name: "Premium Garage - Downtown",
+      address: "Downtown, Bhopal",
+      baseRate: 80,
+      lat: 23.2550,
+      lng: 77.4080,
+      ownerId: null,
+    },
+  });
+
+  // 3. Slots for each parking lot
   for (let i = 1; i <= 20; i++) {
     await prisma.slot.create({
       data: {
         number: `A-${i}`,
-        lotId: lot.id,
+        lotId: lot1.id,
         status: SlotStatus.FREE,
+      },
+    });
+  }
+
+  for (let i = 1; i <= 15; i++) {
+    await prisma.slot.create({
+      data: {
+        number: `B-${i}`,
+        lotId: lot2.id,
+        status: SlotStatus.FREE,
+      },
+    });
+  }
+
+  for (let i = 1; i <= 10; i++) {
+    await prisma.slot.create({
+      data: {
+        number: `C-${i}`,
+        lotId: lot3.id,
+        status: i <= 3 ? SlotStatus.FREE : SlotStatus.FREE, // Mix of statuses
       },
     });
   }
