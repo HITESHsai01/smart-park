@@ -1,16 +1,17 @@
 "use client";
 
+import { getCoordinates } from "@/app/lib/geocode";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { 
-  ArrowLeft, 
-  Search, 
-  ChevronUp, 
-  ChevronDown, 
+import {
+  ArrowLeft,
+  Search,
+  ChevronUp,
+  ChevronDown,
   AlertCircle,
   MapPin,
-  Car
+  Car,
 } from "lucide-react";
 
 // Make sure your Map component is configured to fill its parent container
@@ -27,6 +28,7 @@ export default function MapPage() {
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPanelExpanded, setIsPanelExpanded] = useState(true);
+  const [destinationCoords, setDestinationCoords] = useState<any>(null);
 
   useEffect(() => {
     async function fetchProperties() {
@@ -43,6 +45,24 @@ export default function MapPage() {
     fetchProperties();
   }, []);
 
+  useEffect(() => {
+    async function loadCoords() {
+      const params = new URLSearchParams(window.location.search);
+      const destination = params.get("to");
+
+      if (!destination) return;
+
+      const coords = await getCoordinates(destination);
+
+      //  console.log("COORDS:", destination);
+
+      setDestinationCoords(coords);
+
+    }
+
+    loadCoords();
+  }, []);
+
   if (loading) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-[#0a0a0a] text-white">
@@ -51,9 +71,9 @@ export default function MapPage() {
     );
   }
 
+  // console.log("DESTINATION COORDS:", destinationCoords);
   return (
     <div className="bg-[#0a0a0a] h-screen flex flex-col overflow-hidden">
-      
       {/* 🔥 NAVBAR */}
       <div className="flex-shrink-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-[#1f1f1f] py-4">
         <div className="flex items-center justify-between">
@@ -92,27 +112,35 @@ export default function MapPage() {
 
       {/* 🔥 MAP AREA */}
       <div className="flex-1 relative w-full bg-[#111111]">
-        <Map properties={properties} />
+        <Map properties={properties} destinationCoords={destinationCoords} />
       </div>
 
       {/* 🔥 PARKING SPOTS AVAILABLE SECTION */}
-      <div 
+      <div
         className={`w-full bg-[#0a0a0a] border-t border-[#1f1f1f] flex flex-col transition-all duration-300 ease-in-out ${
-          isPanelExpanded ? 'h-[40vh] min-h-[300px]' : 'h-[73px]'
+          isPanelExpanded ? "h-[40vh] min-h-[300px]" : "h-[73px]"
         }`}
       >
         {/* Header Bar */}
-        <div 
+        <div
           className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-[#1f1f1f] cursor-pointer hover:bg-[#111111] transition-colors"
           onClick={() => setIsPanelExpanded(!isPanelExpanded)}
         >
           <div>
-            <h2 className="text-white text-sm font-semibold">Parking Spots Available</h2>
+            <h2 className="text-white text-sm font-semibold">
+              Parking Spots Available
+            </h2>
             {/* 🔥 Update the count dynamically based on the fetched data */}
-            <p className="text-[#888888] text-xs mt-0.5">{properties.length} spots found</p>
+            <p className="text-[#888888] text-xs mt-0.5">
+              {properties.length} spots found
+            </p>
           </div>
           <button className="text-[#888888] hover:text-white transition-colors">
-            {isPanelExpanded ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+            {isPanelExpanded ? (
+              <ChevronDown size={20} />
+            ) : (
+              <ChevronUp size={20} />
+            )}
           </button>
         </div>
 
@@ -122,22 +150,28 @@ export default function MapPage() {
           {properties.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full py-10">
               <AlertCircle size={32} className="text-red-500 mb-3" />
-              <h3 className="text-white text-sm font-medium">No parking spots available</h3>
-              <p className="text-[#888888] text-sm mt-1">Try searching in a different area</p>
+              <h3 className="text-white text-sm font-medium">
+                No parking spots available
+              </h3>
+              <p className="text-[#888888] text-sm mt-1">
+                Try searching in a different area
+              </p>
             </div>
           ) : (
             properties.map((property) => (
-              <div 
-                key={property.id} 
+              <div
+                key={property.id}
                 className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 hover:border-blue-600/50 transition-colors cursor-pointer"
               >
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-white font-medium text-base">{property.name}</h3>
+                  <h3 className="text-white font-medium text-base">
+                    {property.name}
+                  </h3>
                   <div className="bg-blue-600/20 text-blue-500 px-2 py-1 rounded text-xs font-bold">
                     ₹{property.baseRate}/hr
                   </div>
                 </div>
-                
+
                 <div className="flex items-center text-[#888888] text-sm mb-3">
                   <MapPin size={14} className="mr-1.5 flex-shrink-0" />
                   <span className="truncate">{property.address}</span>
