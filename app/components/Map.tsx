@@ -33,7 +33,7 @@ export default function Map({ properties }: { properties: Property[] }) {
       center={defaultCenter} 
       zoom={13} 
       scrollWheelZoom={true} 
-      className="h-[calc(100vh-64px)] w-full z-0"
+      className="h-full w-full z-0"
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -45,25 +45,29 @@ export default function Map({ properties }: { properties: Property[] }) {
          const lat = property.lat || 23.2599 + (Math.random() - 0.5) * 0.1;
          const lng = property.lng || 77.4126 + (Math.random() - 0.5) * 0.1;
 
-         return (
+        return (
           <Marker key={property.id} position={[lat, lng]} icon={customIcon}>
             <Popup>
-              <div className="p-2 space-y-2">
-                <h3 className="font-bold text-lg">{property.name}</h3>
-                <p className="text-sm text-gray-600">{property.address}</p>
-                <div className="flex justify-between items-center pt-2">
-                  <span className="font-semibold text-blue-600">₹{property.baseRate}/hr</span>
-                  <Link 
-                    href={`/booking/${property.id}`}
-                    className="px-3 py-1 bg-black text-white text-xs rounded-full hover:bg-gray-800"
+              <div className="p-3 space-y-2 bg-zinc-900 text-white rounded-lg">
+              <h3 className="font-bold text-lg">{property.name}</h3>
+              <p className="text-sm text-gray-600">{property.address}</p>
+
+              <div className="flex justify-between items-center pt-2">
+              <span className="font-semibold text-blue-600">
+                ₹{property.baseRate}/hr
+              </span>
+
+                <Link
+                  href={`/booking/${property.id}`}
+                  className="px-3 py-1 bg-black text-white text-xs rounded-full hover:bg-gray-800"
                   >
-                    Book Now
-                  </Link>
-                </div>
+                  Book Now
+                </Link>
               </div>
+            </div>
             </Popup>
-          </Marker>
-         )
+          </Marker> 
+        );
       })}
     </MapContainer>
   );
