@@ -23,7 +23,7 @@ export default function Home() {
 
   const handleBooking = () => {
     if (!destination.trim()) {
-      setInputError("Please enter both locations");
+      setInputError("Please enter correct location");
       return;
     }
 
