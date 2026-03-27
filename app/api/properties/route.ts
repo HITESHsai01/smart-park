@@ -5,6 +5,9 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+// 1. Import your static JSON data
+import parkingData from "@/app/data/parkingdata.json";
+
 const propertySchema = z.object({
   name: z.string().min(1),
   address: z.string().min(1),
@@ -73,15 +76,13 @@ export async function POST(req: Request) {
   }
 }
 
+// 2. TEMPORARY FIX: Bypass Prisma and serve the JSON file directly
 export async function GET(req: Request) {
     try {
-        const properties = await prisma.parkingLot.findMany({
-            include: {
-                slots: true
-            }
-        });
-        return NextResponse.json(properties);
+        // Instead of querying the database, just return the static data directly!
+        return NextResponse.json(parkingData);
     } catch (error) {
+        console.error("[PROPERTIES_GET]", error);
         return new NextResponse("Internal Error", { status: 500 });
     }
 }

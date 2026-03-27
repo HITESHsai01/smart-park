@@ -19,7 +19,7 @@ async function main() {
       name: "Main Parking",
       address: "Campus Block A",
       baseRate: 50,
-      ownerId: null,
+      ownerId:null,
     },
   });
 

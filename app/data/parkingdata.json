@@ -1,0 +1,92 @@
+[
+  {
+    "id": "lot_01",
+    "name": "DB Mall Premium Parking",
+    "address": "Zone-I, Maharana Pratap Nagar, Bhopal",
+    "ownerId": "owner_1",
+    "baseRate": 50.0,
+    "lat": 23.2332,
+    "lng": 77.4299
+  },
+  {
+    "id": "lot_02",
+    "name": "New Market Underground",
+    "address": "TT Nagar, Bhopal",
+    "ownerId": "owner_1",
+    "baseRate": 30.0,
+    "lat": 23.2339,
+    "lng": 77.3995
+  },
+  {
+    "id": "lot_03",
+    "name": "Rani Kamlapati Station Secure Park",
+    "address": "Habibganj, Bhopal",
+    "ownerId": "owner_1",
+    "baseRate": 40.0,
+    "lat": 23.2255,
+    "lng": 77.4332
+  },
+  {
+    "id": "lot_04",
+    "name": "MP Nagar Zone 2 Open Parking",
+    "address": "Zone-II, Maharana Pratap Nagar, Bhopal",
+    "ownerId": "owner_1",
+    "baseRate": 20.0,
+    "lat": 23.2310,
+    "lng": 77.4350
+  },
+  {
+    "id": "lot_05",
+    "name": "Aura Mall Basement Parking",
+    "address": "Gulmohar, Arera Colony, Bhopal",
+    "ownerId": "owner_1",
+    "baseRate": 60.0,
+    "lat": 23.1895,
+    "lng": 77.4450
+  },
+  {
+    "id": "lot_06",
+    "name": "Raja Bhoj Airport Long-Term Park",
+    "address": "Airport Road, Gandhi Nagar, Bhopal",
+    "ownerId": "owner_1",
+    "baseRate": 100.0,
+    "lat": 23.2875,
+    "lng": 77.3360
+  },
+  {
+    "id": "lot_07",
+    "name": "VIP Road Lakeside Parking",
+    "address": "VIP Road, Near Upper Lake, Bhopal",
+    "ownerId": "owner_1",
+    "baseRate": 25.0,
+    "lat": 23.2650,
+    "lng": 77.3850
+  },
+  {
+    "id": "lot_08",
+    "name": "10 Number Market Smart Parking",
+    "address": "E-4, Arera Colony, Bhopal",
+    "ownerId": "owner_1",
+    "baseRate": 35.0,
+    "lat": 23.2120,
+    "lng": 77.4100
+  },
+  {
+    "id": "lot_09",
+    "name": "Bairagarh Main Market Lot",
+    "address": "Sant Hirdaram Nagar, Bhopal",
+    "ownerId": "owner_1",
+    "baseRate": 20.0,
+    "lat": 23.2750,
+    "lng": 77.3200
+  },
+  {
+    "id": "lot_10",
+    "name": "Indrapuri C-Sector Spots",
+    "address": "Indrapuri, BHEL, Bhopal",
+    "ownerId": "owner_1",
+    "baseRate": 30.0,
+    "lat": 23.2520,
+    "lng": 77.4650
+  }
+]
