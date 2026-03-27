@@ -55,7 +55,7 @@ export default function MapPage() {
     <div className="bg-[#0a0a0a] h-screen flex flex-col overflow-hidden">
       
       {/* 🔥 NAVBAR */}
-      <div className="flex-shrink-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-[#1f1f1f] py-4">
+      <div className="shrink-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-[#1f1f1f] py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 text-white pl-2">
             <Link
@@ -85,8 +85,7 @@ export default function MapPage() {
               </span>
             </div>
           </div>
-
-          <div className="w-[120px]" />
+          <div className="w-30" />
         </div>
       </div>
 
@@ -98,12 +97,12 @@ export default function MapPage() {
       {/* 🔥 PARKING SPOTS AVAILABLE SECTION */}
       <div 
         className={`w-full bg-[#0a0a0a] border-t border-[#1f1f1f] flex flex-col transition-all duration-300 ease-in-out ${
-          isPanelExpanded ? 'h-[40vh] min-h-[300px]' : 'h-[73px]'
+          isPanelExpanded ? 'h-[40vh] min-h-75' : 'h-18.25'
         }`}
       >
         {/* Header Bar */}
         <div 
-          className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-[#1f1f1f] cursor-pointer hover:bg-[#111111] transition-colors"
+          className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-[#1f1f1f] cursor-pointer hover:bg-[#111111] transition-colors"
           onClick={() => setIsPanelExpanded(!isPanelExpanded)}
         >
           <div>
