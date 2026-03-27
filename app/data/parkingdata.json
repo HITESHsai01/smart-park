@@ -1,92 +1,22 @@
 [
-  {
-    "id": "lot_01",
-    "name": "DB Mall Premium Parking",
-    "address": "Zone-I, Maharana Pratap Nagar, Bhopal",
-    "ownerId": "owner_1",
-    "baseRate": 50.0,
-    "lat": 23.2332,
-    "lng": 77.4299
-  },
-  {
-    "id": "lot_02",
-    "name": "New Market Underground",
-    "address": "TT Nagar, Bhopal",
-    "ownerId": "owner_1",
-    "baseRate": 30.0,
-    "lat": 23.2339,
-    "lng": 77.3995
-  },
-  {
-    "id": "lot_03",
-    "name": "Rani Kamlapati Station Secure Park",
-    "address": "Habibganj, Bhopal",
-    "ownerId": "owner_1",
-    "baseRate": 40.0,
-    "lat": 23.2255,
-    "lng": 77.4332
-  },
-  {
-    "id": "lot_04",
-    "name": "MP Nagar Zone 2 Open Parking",
-    "address": "Zone-II, Maharana Pratap Nagar, Bhopal",
-    "ownerId": "owner_1",
-    "baseRate": 20.0,
-    "lat": 23.2310,
-    "lng": 77.4350
-  },
-  {
-    "id": "lot_05",
-    "name": "Aura Mall Basement Parking",
-    "address": "Gulmohar, Arera Colony, Bhopal",
-    "ownerId": "owner_1",
-    "baseRate": 60.0,
-    "lat": 23.1895,
-    "lng": 77.4450
-  },
-  {
-    "id": "lot_06",
-    "name": "Raja Bhoj Airport Long-Term Park",
-    "address": "Airport Road, Gandhi Nagar, Bhopal",
-    "ownerId": "owner_1",
-    "baseRate": 100.0,
-    "lat": 23.2875,
-    "lng": 77.3360
-  },
-  {
-    "id": "lot_07",
-    "name": "VIP Road Lakeside Parking",
-    "address": "VIP Road, Near Upper Lake, Bhopal",
-    "ownerId": "owner_1",
-    "baseRate": 25.0,
-    "lat": 23.2650,
-    "lng": 77.3850
-  },
-  {
-    "id": "lot_08",
-    "name": "10 Number Market Smart Parking",
-    "address": "E-4, Arera Colony, Bhopal",
-    "ownerId": "owner_1",
-    "baseRate": 35.0,
-    "lat": 23.2120,
-    "lng": 77.4100
-  },
-  {
-    "id": "lot_09",
-    "name": "Bairagarh Main Market Lot",
-    "address": "Sant Hirdaram Nagar, Bhopal",
-    "ownerId": "owner_1",
-    "baseRate": 20.0,
-    "lat": 23.2750,
-    "lng": 77.3200
-  },
-  {
-    "id": "lot_10",
-    "name": "Indrapuri C-Sector Spots",
-    "address": "Indrapuri, BHEL, Bhopal",
-    "ownerId": "owner_1",
-    "baseRate": 30.0,
-    "lat": 23.2520,
-    "lng": 77.4650
-  }
+  { "id": "lot_01", "name": "DB Mall Premium Parking", "address": "Zone-I, MP Nagar, Bhopal", "ownerId": "owner_1", "baseRate": 50.0, "lat": 23.2332, "lng": 77.4299 },
+  { "id": "lot_02", "name": "New Market Underground", "address": "TT Nagar, Bhopal", "ownerId": "owner_1", "baseRate": 30.0, "lat": 23.2339, "lng": 77.3995 },
+  { "id": "lot_03", "name": "Rani Kamlapati Station", "address": "Habibganj, Bhopal", "ownerId": "owner_1", "baseRate": 40.0, "lat": 23.2255, "lng": 77.4332 },
+  { "id": "lot_04", "name": "ISBT Commercial Parking", "address": "ISBT, MP Nagar, Bhopal", "ownerId": "owner_1", "baseRate": 50.0, "lat": 23.2380, "lng": 77.4380 },
+  { "id": "lot_05", "name": "Aura Mall Basement", "address": "Gulmohar, Arera Colony", "ownerId": "owner_1", "baseRate": 60.0, "lat": 23.1895, "lng": 77.4450 },
+  { "id": "lot_06", "name": "Raja Bhoj Airport Park", "address": "Gandhi Nagar, Bhopal", "ownerId": "owner_1", "baseRate": 100.0, "lat": 23.2875, "lng": 77.3360 },
+  { "id": "lot_07", "name": "VIP Road Lakeside", "address": "VIP Road, Bhopal", "ownerId": "owner_1", "baseRate": 25.0, "lat": 23.2650, "lng": 77.3850 },
+  { "id": "lot_08", "name": "10 Number Market Smart", "address": "E-4, Arera Colony, Bhopal", "ownerId": "owner_1", "baseRate": 35.0, "lat": 23.2120, "lng": 77.4100 },
+  { "id": "lot_09", "name": "Bairagarh Main Market", "address": "Sant Hirdaram Nagar", "ownerId": "owner_1", "baseRate": 20.0, "lat": 23.2750, "lng": 77.3200 },
+  { "id": "lot_10", "name": "Indrapuri C-Sector", "address": "Indrapuri, BHEL, Bhopal", "ownerId": "owner_1", "baseRate": 30.0, "lat": 23.2520, "lng": 77.4650 },
+  { "id": "lot_11", "name": "Jyoti Talkies Multi-level", "address": "Zone-I, MP Nagar, Bhopal", "ownerId": "owner_1", "baseRate": 45.0, "lat": 23.2340, "lng": 77.4320 },
+  { "id": "lot_12", "name": "Apex Bank Road Spots", "address": "New Market, TT Nagar", "ownerId": "owner_1", "baseRate": 25.0, "lat": 23.2345, "lng": 77.3990 },
+  { "id": "lot_13", "name": "Shahpura Lake View Park", "address": "Shahpura, Arera Colony", "ownerId": "owner_1", "baseRate": 40.0, "lat": 23.2050, "lng": 77.4270 },
+  { "id": "lot_14", "name": "D-Mart Kolar Lot", "address": "Kolar Road, Bhopal", "ownerId": "owner_1", "baseRate": 35.0, "lat": 23.1880, "lng": 77.4070 },
+  { "id": "lot_15", "name": "Minal Mall Basement", "address": "Minal Residency, BHEL", "ownerId": "owner_1", "baseRate": 40.0, "lat": 23.2610, "lng": 77.4620 },
+  { "id": "lot_16", "name": "Awadhpuri Square Park", "address": "Awadhpuri, Bhopal", "ownerId": "owner_1", "baseRate": 20.0, "lat": 23.2310, "lng": 77.4810 },
+  { "id": "lot_17", "name": "People's Mall Parking", "address": "Bhanpur, Bhopal", "ownerId": "owner_1", "baseRate": 30.0, "lat": 23.2880, "lng": 77.4180 },
+  { "id": "lot_18", "name": "C21 Mall Basement", "address": "Hoshangabad Road", "ownerId": "owner_1", "baseRate": 50.0, "lat": 23.1910, "lng": 77.4510 },
+  { "id": "lot_19", "name": "AIIMS Gate 1 Parking", "address": "Saket Nagar, Bhopal", "ownerId": "owner_1", "baseRate": 40.0, "lat": 23.2000, "lng": 77.4600 },
+  { "id": "lot_20", "name": "Lalghati Square", "address": "Lalghati, Bhopal", "ownerId": "owner_1", "baseRate": 35.0, "lat": 23.2710, "lng": 77.3710 }
 ]

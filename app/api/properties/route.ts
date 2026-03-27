@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// 1. Import your static JSON data
+// Import your static JSON data
 import parkingData from "@/app/data/parkingdata.json";
 
 const propertySchema = z.object({
@@ -31,41 +31,27 @@ export async function POST(req: Request) {
 
     const { name, address, baseRate, slots } = body.data;
 
-    // Check if user has an Owner profile, if not create one
     let owner = await prisma.owner.findUnique({
       where: { userId: session.user.id },
     });
 
     if (!owner) {
       owner = await prisma.owner.create({
-        data: {
-          userId: session.user.id,
-        },
+        data: { userId: session.user.id },
       });
     }
 
-    // Create property and slots in a transaction
     const property = await prisma.$transaction(async (tx) => {
-      // 1. Create Parking Lot
       const newLot = await tx.parkingLot.create({
-        data: {
-          name,
-          address,
-          baseRate,
-          ownerId: owner.id,
-        },
+        data: { name, address, baseRate, ownerId: owner.id },
       });
 
-      // 2. Generate Slots
       const slotsData = Array.from({ length: slots }).map((_, i) => ({
         number: `S-${i + 1}`,
         lotId: newLot.id,
       }));
 
-      await tx.slot.createMany({
-        data: slotsData,
-      });
-
+      await tx.slot.createMany({ data: slotsData });
       return newLot;
     });
 
@@ -76,10 +62,9 @@ export async function POST(req: Request) {
   }
 }
 
-// 2. TEMPORARY FIX: Bypass Prisma and serve the JSON file directly
-export async function GET(req: Request) {
+// Fixed GET route (removed the unused 'req' variable that causes TS errors)
+export async function GET() {
     try {
-        // Instead of querying the database, just return the static data directly!
         return NextResponse.json(parkingData);
     } catch (error) {
         console.error("[PROPERTIES_GET]", error);
