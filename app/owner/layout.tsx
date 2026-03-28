@@ -8,7 +8,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { auth, signOut } from "@/auth";
-import { NavSidebar } from "./nav-sidebar";
+import { NavSidebar } from "../ui/nav-sidebar";
 
 export default async function OwnerLayout({
   children,
