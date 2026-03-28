@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { ArrowRight, MapPin, Shield, Clock, XCircle } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
-export default function Home() {
+function HomeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [showError, setShowError] = useState(false);
@@ -171,5 +171,13 @@ function FeatureCard({
       </h3>
       <p className="text-gray-600 dark:text-gray-400">{description}</p>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="flex flex-col min-h-screen bg-gray-50 dark:bg-black" />}>
+      <HomeContent />
+    </Suspense>
   );
 }

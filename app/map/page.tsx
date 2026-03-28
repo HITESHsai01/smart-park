@@ -1,5 +1,4 @@
 "use client";
-
 import { getCoordinates } from "@/app/lib/geocode";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
@@ -24,11 +23,23 @@ const Map = dynamic(() => import("@/app/components/Map"), {
   ),
 });
 
+interface SavedRouteData {
+  selectedParking: any;
+  destinationCoords: { lat: number; lng: number };
+  destinationAddress: string;
+  routePath: [number, number][];
+  routeDistance: number;
+  routeDuration: number;
+  speedCameras: [number, number][];
+  timestamp: number;
+}
+
 export default function MapPage() {
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPanelExpanded, setIsPanelExpanded] = useState(true);
   const [destinationCoords, setDestinationCoords] = useState<any>(null);
+  const [destinationAddress, setDestinationAddress] = useState<string>("");
 
   useEffect(() => {
     async function fetchProperties() {
@@ -50,14 +61,44 @@ export default function MapPage() {
       const params = new URLSearchParams(window.location.search);
       const destination = params.get("to");
 
-      if (!destination) return;
+      // First check URL params
+      if (destination) {
+        const coords = await getCoordinates(destination);
+        if (coords) {
+          setDestinationCoords(coords);
+          setDestinationAddress(destination);
 
-      const coords = await getCoordinates(destination);
+          // Save to localStorage for persistence
+          const savedRoute = localStorage.getItem('smartpark_route_context');
+          const existingData = savedRoute ? JSON.parse(savedRoute) : {};
+          localStorage.setItem('smartpark_route_context', JSON.stringify({
+            ...existingData,
+            destinationCoords: coords,
+            destinationAddress: destination,
+            timestamp: Date.now()
+          }));
+        }
+        return;
+      }
 
-      //  console.log("COORDS:", destination);
-
-      setDestinationCoords(coords);
-
+      // If no URL param, check localStorage
+      const savedContext = localStorage.getItem('smartpark_route_context');
+      if (savedContext) {
+        try {
+          const parsed: SavedRouteData = JSON.parse(savedContext);
+          // Check if less than 24 hours old
+          if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+            setDestinationCoords(parsed.destinationCoords);
+            setDestinationAddress(parsed.destinationAddress);
+            console.log("Restored destination from storage:", parsed.destinationAddress);
+          } else {
+            localStorage.removeItem('smartpark_route_context');
+            localStorage.removeItem('smartpark_selected_route');
+          }
+        } catch (e) {
+          console.error("Failed to parse saved context:", e);
+        }
+      }
     }
 
     loadCoords();

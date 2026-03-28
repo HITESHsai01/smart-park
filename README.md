@@ -100,3 +100,34 @@ The booking Logic in `/app/api/bookings` handles:
     ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+---
+
+## 🐛 Known Issues
+
+### Map Routing Persistence
+
+**Issue 1: Clearing Route removes Destination**
+- **Description**: When clicking "Clear Route" in the map's distance info box, both the 3-point route (Live Location → Destination → Parking) AND the destination marker are removed from the map.
+- **Expected Behavior**: Clearing the route should only remove the parking leg of the journey, keeping the destination marker and the initial route (Live Location → Destination).
+- **Current Behavior**: The entire route including destination is cleared.
+- **Root Cause**: The `clearSavedRoute()` function clears both `smartpark_selected_route` and `smartpark_route_context` from localStorage, and the destination is derived from the context.
+
+**Issue 2: Route not persisting after Booking**
+- **Description**: After booking a parking spot and navigating to `/booking/[id]`, then returning to the map page, the previously selected 3-point route is not restored.
+- **Expected Behavior**: The complete 3-point route (Live Location → Destination → Selected Parking) should be visible when returning to the map.
+- **Current Behavior**: The map shows no destination, no route, and requires re-searching the destination.
+- **Root Cause**:
+  - The map page (`/map/page.tsx`) only loads destination from URL parameters (`?to=...`)
+  - After booking navigation, the URL no longer contains the destination parameter
+  - While the destination and route are saved to localStorage, the restoration logic may not trigger properly when returning from the booking flow
+  - The restoration effect in `Map.tsx` depends on `destinationCoords` prop which may not be available immediately on page load
+
+**Workaround**:
+Users must re-search their destination after completing a booking to see the route again.
+
+**Potential Fixes**:
+1. Separate the destination clearing from route clearing - maintain destination context independently
+2. Add a listener for navigation events that checks localStorage on every map page mount
+3. Pass the destination through the booking flow and back to the map via URL parameters
+4. Use a global state management (Zustand/Redux) instead of localStorage for route state

@@ -1,123 +1,133 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { createUser } from "./action";
 
+interface FormState {
+  name: string;
+  email: string;
+  password: string;
+}
+
+const FIELDS = [
+  { name: "name", type: "text", label: "Name", placeholder: "John Doe", autoComplete: "name" },
+  { name: "email", type: "email", label: "Email", placeholder: "you@example.com", autoComplete: "email" },
+  { name: "password", type: "password", label: "Password", placeholder: "••••••••", autoComplete: "new-password" },
+] as const;
+
 export default function SignUpPage() {
   const router = useRouter();
+  const [form, setForm] = useState<FormState>({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    if (error) setError("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
     setError("");
 
     try {
-      const name = formData.get("name") as string;
-      const email = formData.get("email") as string;
-      const password = formData.get("password") as string;
+      const result = await createUser(form);
+      if (result.error) throw new Error(result.error);
 
-      // Create user using server action (defaults to DRIVER)
-      const result = await createUser({ name, email, password });
-
-      if (result.error) {
-        throw new Error(result.error);
-      }
-
-      // Auto login after signup
       const signInResult = await signIn("credentials", {
-        email,
-        password,
+        email: form.email,
+        password: form.password,
         redirect: false,
       });
 
       if (signInResult?.error) {
-        setError("Account created but login failed");
+        setError("Account created but login failed. Please sign in manually.");
       } else {
         router.push("/");
         router.refresh();
       }
-    } catch (error: any) {
-      setError(error.message || "Something went wrong");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="bg-white p-8 rounded-xl shadow-lg border w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-2">Create Account</h1>
-        <p className="text-gray-600 mb-8">Join SmartPark today</p>
+    <main className="min-h-screen flex items-center justify-center bg-[#0a0a0a] px-4 font-sans">
+      <div className="bg-[#111111] p-10 rounded-[2rem] border border-white/5 w-full max-w-md shadow-2xl">
+        <header className="text-center mb-10">
+          <h1 className="text-4xl font-bold text-white mb-3 tracking-tight">
+            Create Account
+          </h1>
+          <p className="text-gray-400 text-lg">Join SmartPark today</p>
+        </header>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+          <div
+            role="alert"
+            aria-live="polite"
+            className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center"
+          >
             {error}
           </div>
         )}
 
-        <form action={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Name</label>
-            <input
-              type="text"
-              name="name"
-              className="w-full border rounded-lg px-4 py-2"
-              placeholder="John Doe"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              className="w-full border rounded-lg px-4 py-2"
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
-            <input
-              type="password"
-              name="password"
-              className="w-full border rounded-lg px-4 py-2"
-              placeholder="••••••••"
-              minLength={6}
-              required
-            />
-            <p className="mt-1 text-xs text-gray-500">At least 6 characters</p>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+          {FIELDS.map(({ name, type, label, placeholder, autoComplete }) => (
+            <div key={name}>
+              <label
+                htmlFor={name}
+                className="block text-sm font-semibold mb-2 text-gray-300 ml-1"
+              >
+                {label}
+              </label>
+              <input
+                id={name}
+                name={name}
+                type={type}
+                value={form[name]}
+                onChange={handleChange}
+                autoComplete={autoComplete}
+                placeholder={placeholder}
+                minLength={name === "password" ? 6 : undefined}
+                required
+                disabled={isLoading}
+                className="w-full bg-[#1c1c1c] border border-white/10 rounded-2xl px-5 py-4 text-white
+                           focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all
+                           placeholder:text-gray-600 disabled:opacity-50"
+              />
+              {name === "password" && (
+                <p className="mt-1.5 text-xs text-gray-600 ml-1">At least 6 characters</p>
+              )}
+            </div>
+          ))}
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black text-white py-2.5 rounded-lg font-semibold hover:bg-gray-800 disabled:opacity-50"
+            className="w-full py-4 rounded-2xl font-bold text-white transition-all mt-4
+                       bg-gradient-to-r from-[#1d4ed8] to-[#06b6d4]
+                       hover:brightness-110 active:scale-[0.98]
+                       shadow-[0_0_20px_rgba(29,78,216,0.3)]
+                       disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Creating account..." : "Create Account"}
+            {isLoading ? "Creating account…" : "Create Account"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Already have an account?{" "}
-          <Link href="/sign-in" className="text-blue-600 hover:underline">
-            Sign in
-          </Link>
-        </p>
-
-        <p className="mt-3 text-center text-sm text-gray-500">
-          Have parking to rent?{" "}
-          <Link href="/owner/sign-up" className="text-blue-600 hover:underline">
-            Become a partner
-          </Link>
-        </p>
+        <div className="mt-10 space-y-3 text-center">
+          <p className="text-gray-500 font-medium text-sm">
+            Already have an account?{" "}
+            <Link href="/sign-in" className="text-[#3b82f6] hover:text-blue-400 transition-colors">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

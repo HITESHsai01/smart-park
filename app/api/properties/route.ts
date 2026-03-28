@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // Import your static JSON data
-import parkingData from "@/app/data/parkingdata.json";
+
 
 const propertySchema = z.object({
   name: z.string().min(1),
@@ -62,12 +62,32 @@ export async function POST(req: Request) {
   }
 }
 
-// Fixed GET route (removed the unused 'req' variable that causes TS errors)
+// GET all properties from database
 export async function GET() {
-    try {
-        return NextResponse.json(parkingData);
-    } catch (error) {
-        console.error("[PROPERTIES_GET]", error);
-        return new NextResponse("Internal Error", { status: 500 });
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return new NextResponse("Unauthorized", { status: 401 });
     }
+
+    const properties = await prisma.parkingLot.findMany({
+      include: {
+        owner: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true }
+            }
+          }
+        },
+        slots: {
+          select: { id: true, number: true, status: true, size: true }
+        }
+      },
+    });
+
+    return NextResponse.json(properties);
+  } catch (error) {
+    console.error("[PROPERTIES_GET]", error);
+    return new NextResponse("Internal Error", { status: 500 });
+  }
 }
