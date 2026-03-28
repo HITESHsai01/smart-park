@@ -40,21 +40,96 @@ export default function MapPage() {
   const [isPanelExpanded, setIsPanelExpanded] = useState(true);
   const [destinationCoords, setDestinationCoords] = useState<any>(null);
   const [destinationAddress, setDestinationAddress] = useState<string>("");
+  const [searchInput, setSearchInput] = useState("");
+  const [userBookings, setUserBookings] = useState<any[]>([]);
+
+  const executeSearch = async () => {
+    if (!searchInput.trim()) return;
+    const coords = await getCoordinates(searchInput);
+    if (coords) {
+      setDestinationCoords(coords);
+      setDestinationAddress(searchInput);
+      
+      // Clear old 3-point route because destination changed
+      localStorage.removeItem('smartpark_selected_route');
+      
+      // Save new destination context
+      localStorage.setItem('smartpark_route_context', JSON.stringify({
+        destinationCoords: coords,
+        destinationAddress: searchInput,
+        timestamp: Date.now()
+      }));
+    } else {
+      alert("Location not found. Please try another search.");
+    }
+  };
+
+  const handleSearch = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      await executeSearch();
+    }
+  };
 
   useEffect(() => {
-    async function fetchProperties() {
+    async function fetchData() {
       try {
-        const res = await fetch("/api/properties");
-        const data = await res.json();
-        setProperties(data);
+        const [resProps, resBookings] = await Promise.all([
+          fetch("/api/properties"),
+          fetch("/api/bookings").catch(() => null)
+        ]);
+
+        const dataProps = await resProps.json();
+        setProperties(dataProps);
+
+        if (resBookings && resBookings.ok) {
+          const dataBookings = await resBookings.json();
+          setUserBookings(dataBookings);
+        }
       } catch (error) {
-        console.error("Failed to fetch properties:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setLoading(false);
       }
     }
-    fetchProperties();
+    fetchData();
   }, []);
+
+  const handleCancelBooking = async (e: React.MouseEvent, bookingId: string, propertyId: string) => {
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to cancel this booking?")) return;
+    
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}`, {
+        method: 'DELETE'
+      });
+      
+      if (res.ok) {
+        setUserBookings(prev => prev.filter(b => b.id !== bookingId));
+        
+        // Update local property slots to reflect the freed slot immediately
+        setProperties(prevProps => prevProps.map(p => {
+          if (p.id === propertyId) {
+            const updatedSlots = p.slots.map((s: any) => {
+               const booking = userBookings.find(b => b.id === bookingId);
+               if (booking && s.id === booking.slotId) {
+                 return { ...s, status: "FREE" };
+               }
+               return s;
+            });
+            return { ...p, slots: updatedSlots };
+          }
+          return p;
+        }));
+        
+        alert("Booking cancelled successfully!");
+      } else {
+        alert("Failed to cancel booking.");
+      }
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      alert("An error occurred.");
+    }
+  };
 
   useEffect(() => {
     async function loadCoords() {
@@ -138,12 +213,19 @@ export default function MapPage() {
             <div className="w-full max-w-md relative">
               <input
                 type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={handleSearch}
                 placeholder="Search location..."
                 className="w-full bg-[#111111] text-white placeholder-gray-500 px-5 py-2.5 rounded-full border border-[#1f1f1f] focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+              <button 
+                onClick={executeSearch}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                aria-label="Search"
+              >
                 <Search size={18} />
-              </span>
+              </button>
             </div>
           </div>
 
@@ -153,7 +235,7 @@ export default function MapPage() {
 
       {/* 🔥 MAP AREA */}
       <div className="flex-1 relative w-full bg-[#111111]">
-        <Map properties={properties} destinationCoords={destinationCoords} />
+        <Map properties={properties} destinationCoords={destinationCoords} bookedPropertyIds={userBookings.map(b => b.slot?.lotId).filter(Boolean)} />
       </div>
 
       {/* 🔥 PARKING SPOTS AVAILABLE SECTION */}
@@ -199,7 +281,10 @@ export default function MapPage() {
               </p>
             </div>
           ) : (
-            properties.map((property) => (
+            properties.map((property) => {
+              const userBooking = userBookings.find((b: any) => b.slot?.lotId === property.id);
+
+              return (
               <div
                 key={property.id}
                 className="bg-[#111111] border border-[#1f1f1f] rounded-xl p-4 hover:border-blue-600/50 transition-colors cursor-pointer"
@@ -218,14 +303,36 @@ export default function MapPage() {
                   <span className="truncate">{property.address}</span>
                 </div>
 
-                <div className="flex items-center text-sm">
-                  <div className="flex items-center text-green-500 bg-green-500/10 px-2.5 py-1 rounded-full">
+                <div className="flex items-center justify-between text-sm mt-1">
+                  <div className="flex items-center text-green-500 bg-green-500/10 px-2.5 py-1 rounded-full font-medium">
                     <Car size={14} className="mr-1.5" />
-                    <span>{property.slots?.length || 0} Total Slots</span>
+                    <span>{property.slots?.filter((s: any) => s.status === "FREE").length || 0} free / {property.slots?.length || 0} total slots</span>
                   </div>
+                  
+                  {userBooking ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1.5 rounded-md">
+                        Booked
+                      </span>
+                      <button 
+                        onClick={(e) => handleCancelBooking(e, userBooking.id, property.id)}
+                        className="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/50 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all active:scale-95"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <Link 
+                      href={`/booking/${property.id}`}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-md transition-all active:scale-95"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Book Now
+                    </Link>
+                  )}
                 </div>
               </div>
-            ))
+            )})
           )}
         </div>
       </div>

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { ArrowRight, MapPin, Shield, Clock, XCircle } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
+import { useSession, signOut } from "next-auth/react";
 
 function HomeContent() {
   const searchParams = useSearchParams();
@@ -11,6 +12,31 @@ function HomeContent() {
   const [showError, setShowError] = useState(false);
   const [destination, setDestination] = useState("");
   const [inputError, setInputError] = useState("");
+  const { data: session, status } = useSession();
+  
+  // Profile Dropdown & Password UI state
+  const [showProfile, setShowProfile] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Password form state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowProfile(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (searchParams.get("error") === "unauthorized") {
@@ -31,10 +57,51 @@ function HomeContent() {
     setInputError("");
 
     // Navigate to map with query parameters
+    // Navigate to map with query parameters
     router.push(
       `/map?to=${encodeURIComponent(destination)}`
     );
   };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New passwords do not match.");
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const res = await fetch("/api/auth/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText);
+      }
+
+      setPasswordSuccess("Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      
+      // Auto close after 2s
+      setTimeout(() => setShowPasswordModal(false), 2000);
+    } catch (err: any) {
+      setPasswordError(err.message || "Failed to update password");
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
+  // Get initial
+  const userInitial = session?.user?.name?.charAt(0).toUpperCase() || session?.user?.email?.charAt(0).toUpperCase() || "U";
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -56,6 +123,67 @@ function HomeContent() {
         </div>
       )}
 
+      {/* Password Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            <button 
+              onClick={() => setShowPasswordModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-black dark:hover:text-white"
+            >
+              <XCircle size={24} />
+            </button>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Change Password</h2>
+            
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Password</label>
+                <input
+                  type="password"
+                  required
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm New Password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 dark:border-zinc-700 bg-transparent px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-600 outline-none"
+                />
+              </div>
+
+              {passwordError && <p className="text-red-500 text-sm font-medium mt-2">{passwordError}</p>}
+              {passwordSuccess && <p className="text-emerald-500 text-sm font-medium mt-2">{passwordSuccess}</p>}
+
+              <button
+                type="submit"
+                disabled={isUpdatingPassword}
+                className="w-full py-2.5 mt-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition disabled:opacity-50"
+              >
+                {isUpdatingPassword ? "Updating..." : "Update Password"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="px-6 h-16 flex items-center justify-between border-b border-gray-200 dark:border-zinc-800 bg-white/50 dark:bg-black/50 backdrop-blur-sm sticky top-0 z-40">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
@@ -71,12 +199,56 @@ function HomeContent() {
           >
             Become a Partner
           </Link>
-          <Link
-            href="/sign-in"
-            className="px-4 py-2 rounded-full bg-black dark:bg-white text-white dark:text-black text-sm font-medium hover:opacity-90 transition-opacity"
-          >
-            Sign In
-          </Link>
+
+          {status === "loading" ? (
+            <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-zinc-800 animate-pulse"></div>
+          ) : session?.user ? (
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => setShowProfile(!showProfile)}
+                className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 text-white font-bold flex items-center justify-center hover:opacity-90 transition-opacity shadow-sm"
+              >
+                {userInitial}
+              </button>
+
+              {showProfile && (
+                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-gray-200 dark:border-zinc-800 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-black/20">
+                    <p className="text-sm text-gray-900 dark:text-white font-semibold truncate">
+                      {session.user.name || "User"}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                      {session.user.email}
+                    </p>
+                  </div>
+                  <div className="p-2 space-y-1">
+                    <button 
+                      onClick={() => {
+                        setShowProfile(false);
+                        setShowPasswordModal(true);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                    >
+                      Change Password
+                    </button>
+                    <button 
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors font-medium"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/sign-in"
+              className="px-4 py-2 rounded-full bg-black dark:bg-white text-white dark:text-black text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              Sign In
+            </Link>
+          )}
         </nav>
       </header>
 

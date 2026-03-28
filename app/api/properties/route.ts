@@ -4,10 +4,7 @@ import { prisma } from "@/app/lib/prisma";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-// Import your static JSON data
-
-
+import { getCoordinates } from "@/app/lib/geocode";
 const propertySchema = z.object({
   name: z.string().min(1),
   address: z.string().min(1),
@@ -31,6 +28,18 @@ export async function POST(req: Request) {
 
     const { name, address, baseRate, slots } = body.data;
 
+    let lat = null;
+    let lng = null;
+    try {
+      const coords = await getCoordinates(address);
+      if (coords) {
+        lat = coords.lat;
+        lng = coords.lng;
+      }
+    } catch (e) {
+      console.error("Failed to geocode address:", e);
+    }
+
     let owner = await prisma.owner.findUnique({
       where: { userId: session.user.id },
     });
@@ -43,7 +52,7 @@ export async function POST(req: Request) {
 
     const property = await prisma.$transaction(async (tx) => {
       const newLot = await tx.parkingLot.create({
-        data: { name, address, baseRate, ownerId: owner.id },
+        data: { name, address, baseRate, ownerId: owner.id, lat, lng },
       });
 
       const slotsData = Array.from({ length: slots }).map((_, i) => ({

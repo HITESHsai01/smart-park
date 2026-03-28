@@ -1,60 +1,10 @@
-import { prisma } from "@/app/lib/prisma";
+import {stats} from "../data/mock_data"
 import { auth } from "@/auth";
-import { 
-  CircleDollarSign, 
-  ParkingSquare, 
-  TrendingUp,
-  Users, 
-  CalendarCheck,
-  ArrowUpRight,
-  ArrowDownRight,
-  Clock,
-  MoreHorizontal,
-  CheckCircle2
-} from "lucide-react";
+import { ArrowUpRight,ArrowDownRight,Clock,MoreHorizontal} from "lucide-react";
+import RevenuePieChart from "../components/RevenuePieChart";
 
 export default async function OwnerDashboard() {
   const session = await auth();
-  
-  // Mock data - would be real data in production
-  const stats = [
-    { 
-      label: "Total Earnings", 
-      value: "Rs.12,450", 
-      change: "+12.5%", 
-      trend: "up", 
-      icon: CircleDollarSign, 
-      color: "text-blue-600",
-      bg: "bg-blue-50 dark:bg-blue-900/20"
-    },
-    { 
-      label: "Occupancy Rate", 
-      value: "84%", 
-      change: "+4.2%", 
-      trend: "up", 
-      icon: TrendingUp, 
-      color: "text-indigo-600",
-      bg: "bg-indigo-50 dark:bg-indigo-900/20"
-    },
-    { 
-      label: "Active Bookings", 
-      value: "24", 
-      change: "-2.1%", 
-      trend: "down", 
-      icon: CalendarCheck, 
-      color: "text-emerald-600",
-      bg: "bg-emerald-50 dark:bg-emerald-900/20"
-    },
-    { 
-      label: "Arrivals Today", 
-      value: "12", 
-      change: "+8%", 
-      trend: "up", 
-      icon: Users, 
-      color: "text-orange-600",
-      bg: "bg-orange-50 dark:bg-orange-900/20"
-    },
-  ];
 
   return (
     <div className="space-y-6">
@@ -111,9 +61,8 @@ export default async function OwnerDashboard() {
               <option>Last Quarter</option>
             </select>
           </div>
-          <div className="h-[300px] w-full bg-gray-50 dark:bg-neutral-800/50 rounded-lg border border-dashed border-gray-200 dark:border-neutral-700 flex flex-col items-center justify-center text-gray-400 gap-2">
-            <TrendingUp size={32} className="opacity-20" />
-            <span className="text-sm">Revenue chart visualization would go here</span>
+          <div className="h-[340px] w-full">
+            <RevenuePieChart />
           </div>
         </div>
 

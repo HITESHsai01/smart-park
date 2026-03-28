@@ -1,4 +1,3 @@
-
 import { prisma } from "@/app/lib/prisma";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
@@ -10,6 +9,35 @@ const bookingSchema = z.object({
   vehicleType: z.string(),
   amount: z.number(),
 });
+
+export async function GET(req: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const userId = session.user.id;
+    const bookings = await prisma.booking.findMany({
+      where: {
+        userId,
+        status: "ACTIVE"
+      },
+      include: {
+        slot: {
+          include: {
+            lot: true
+          }
+        }
+      }
+    });
+
+    return NextResponse.json(bookings);
+  } catch (error) {
+    console.error("[BOOKING_GET]", error);
+    return new NextResponse("Internal Error", { status: 500 });
+  }
+}
 
 export async function POST(req: Request) {
   try {

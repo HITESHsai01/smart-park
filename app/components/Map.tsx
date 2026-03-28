@@ -20,16 +20,28 @@ const parkingIcon = divIcon({
   popupAnchor: [0, -14],
 });
 
-const parkingSelectedIcon = divIcon({
-  className: "custom-parking-icon-selected",
+const parkingRouteIcon = divIcon({
+  className: "custom-parking-icon-route",
   html: `
-    <div style="background-color: #10b981; color: white; border: 3px solid white; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: sans-serif; font-size: 16px; box-shadow: 0 4px 12px rgba(16,185,129,0.5); animation: bounce 1s infinite;">
+    <div style="background-color: #eab308; color: white; border: 3px solid white; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: sans-serif; font-size: 16px; box-shadow: 0 4px 12px rgba(234,179,8,0.5);">
+      P
+    </div>
+  `,
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+  popupAnchor: [0, -16],
+});
+
+const parkingBookedIcon = divIcon({
+  className: "custom-parking-icon-booked",
+  html: `
+    <div style="background-color: #10b981; color: white; border: 3px solid white; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: sans-serif; font-size: 16px; box-shadow: 0 0 15px rgba(16,185,129,0.8); animation: blink 1s infinite;">
       P
     </div>
     <style>
-      @keyframes bounce {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-4px); }
+      @keyframes blink {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.1); box-shadow: 0 0 25px rgba(16,185,129,1); }
       }
     </style>
   `,
@@ -38,12 +50,16 @@ const parkingSelectedIcon = divIcon({
   popupAnchor: [0, -16],
 });
 
-const destinationIcon = new Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
+const destinationIcon = divIcon({
+  className: "custom-dest-icon",
+  html: `
+    <div style="background-color: #ef4444; color: white; border: 3px solid white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(239,68,68,0.5);">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 15 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+    </div>
+  `,
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+  popupAnchor: [0, -16],
 });
 
 const cameraIcon = divIcon({
@@ -101,9 +117,10 @@ interface MapContentProps {
   properties: Property[];
   destinationCoords?: { lat: number; lng: number } | null;
   onRouteUpdate?: (distance: number, duration: number) => void;
+  bookedPropertyIds?: string[];
 }
 
-function MapContent({ properties, destinationCoords, onRouteUpdate }: MapContentProps) {
+function MapContent({ properties, destinationCoords, onRouteUpdate, bookedPropertyIds = [] }: MapContentProps) {
   const map = useMap();
   const [liveLocation, setLiveLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [routePath, setRoutePath] = useState<[number, number][]>([]);
@@ -137,6 +154,7 @@ function MapContent({ properties, destinationCoords, onRouteUpdate }: MapContent
 
     setLeg1Path(fullPath.slice(0, splitIndex + 1));
     setLeg2Path(fullPath.slice(splitIndex));
+    console.log("destination: ", destinationCoords);
   }, [destinationCoords]);
 
   // Load saved route from localStorage on mount
@@ -193,12 +211,10 @@ function MapContent({ properties, destinationCoords, onRouteUpdate }: MapContent
         } else {
           // Clear old route
           localStorage.removeItem('smartpark_selected_route');
-          localStorage.removeItem('smartpark_route_context');
         }
       } catch (e) {
         console.error("Failed to restore route:", e);
         localStorage.removeItem('smartpark_selected_route');
-        localStorage.removeItem('smartpark_route_context');
       }
     }
   }, [map, destinationCoords, onRouteUpdate, calculateLegPaths]);
@@ -259,6 +275,9 @@ function MapContent({ properties, destinationCoords, onRouteUpdate }: MapContent
       // Don't calculate if we have a saved route being restored
       if (isRestoringRoute) return;
 
+      // Avoid recalculating and recentering the map constantly on GPS updates
+      if (routePath.length > 0) return;
+
       try {
         const response = await fetch(
           `https://router.project-osrm.org/route/v1/driving/${liveLocation.lng},${liveLocation.lat};${destinationCoords.lng},${destinationCoords.lat}?overview=full&geometries=geojson`
@@ -294,7 +313,7 @@ function MapContent({ properties, destinationCoords, onRouteUpdate }: MapContent
     }
 
     calculateInitialRoute();
-  }, [liveLocation, destinationCoords, map, onRouteUpdate, isRestoringRoute]);
+  }, [liveLocation, destinationCoords, map, onRouteUpdate, isRestoringRoute, routePath.length]);
 
   // Save route to localStorage
   const saveRoute = useCallback((parking: Property, path: [number, number][], distance: number, duration: number, cameras: [number, number][]) => {
@@ -379,7 +398,6 @@ function MapContent({ properties, destinationCoords, onRouteUpdate }: MapContent
     setLeg1Path([]);
     setLeg2Path([]);
     localStorage.removeItem('smartpark_selected_route');
-    localStorage.removeItem('smartpark_route_context');
 
     // Reset to initial route
     if (liveLocation && destinationCoords) {
@@ -463,7 +481,7 @@ function MapContent({ properties, destinationCoords, onRouteUpdate }: MapContent
           <Popup>
             <div className="p-2">
               <p className="font-semibold text-gray-900 flex items-center gap-2">
-                <MapPin size={16} className="text-red-500" />
+                <MapPin size={16} className="text-red-500"/>
                 Your Destination
               </p>
               {routeDistance > 0 && !isRouteToParkingActive && (
@@ -493,6 +511,12 @@ function MapContent({ properties, destinationCoords, onRouteUpdate }: MapContent
       {/* Parking Lot Markers */}
       {properties.map((property) => {
         const isSelected = selectedParking?.id === property.id;
+        const isBooked = bookedPropertyIds?.includes(property.id);
+        
+        let iconToUse = parkingIcon;
+        if (isBooked) iconToUse = parkingBookedIcon;
+        else if (isSelected) iconToUse = parkingRouteIcon;
+
         return (
           <Marker
             key={property.id}
@@ -500,7 +524,7 @@ function MapContent({ properties, destinationCoords, onRouteUpdate }: MapContent
               property.lat || 23.2599 + (Math.random() - 0.5) * 0.05,
               property.lng || 77.4126 + (Math.random() - 0.5) * 0.05
             ]}
-            icon={isSelected ? parkingSelectedIcon : parkingIcon}
+            icon={iconToUse}
           >
             <Popup>
               <div className="p-2 space-y-2 min-w-[220px]">
@@ -522,7 +546,7 @@ function MapContent({ properties, destinationCoords, onRouteUpdate }: MapContent
                     disabled={!liveLocation || !destinationCoords}
                     className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                       isSelected
-                        ? "bg-emerald-600 text-white ring-2 ring-emerald-400 ring-offset-1"
+                        ? "bg-yellow-500 text-white ring-2 ring-yellow-400 ring-offset-1"
                         : "bg-gray-900 text-white hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     }`}
                   >
@@ -537,12 +561,18 @@ function MapContent({ properties, destinationCoords, onRouteUpdate }: MapContent
                   )}
                 </div>
 
-                <Link
-                  href={handleBooking(property.id)}
-                  className="block w-full text-center px-4 py-2 bg-white border-2 border-gray-900 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
-                >
-                  Book This Spot
-                </Link>
+                {isBooked ? (
+                  <div className="block w-full text-center px-4 py-2 bg-emerald-100 border-2 border-emerald-500 text-emerald-700 text-sm font-bold rounded-lg cursor-default">
+                    Successfully Booked!
+                  </div>
+                ) : (
+                  <Link
+                    href={handleBooking(property.id)}
+                    className="block w-full text-center px-4 py-2 bg-white border-2 border-gray-900 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+                  >
+                    Book This Spot
+                  </Link>
+                )}
               </div>
             </Popup>
           </Marker>
@@ -618,7 +648,7 @@ function MapContent({ properties, destinationCoords, onRouteUpdate }: MapContent
 }
 
 // --- MAP EXPORT WITH MULTIPLE THEMES ---
-export default function Map({ properties, destinationCoords }: { properties: Property[]; destinationCoords?: { lat: number; lng: number } | null; }) {
+export default function Map({ properties, destinationCoords, bookedPropertyIds }: { properties: Property[]; destinationCoords?: { lat: number; lng: number } | null; bookedPropertyIds?: string[] }) {
   const [mapStyle, setMapStyle] = useState("dark");
 
   const tileSettings: Record<string, { url: string; attribution: string }> = {
@@ -662,7 +692,7 @@ export default function Map({ properties, destinationCoords }: { properties: Pro
           attribution={tileSettings[mapStyle].attribution}
           url={tileSettings[mapStyle].url}
         />
-        <MapContent properties={properties} destinationCoords={destinationCoords} />
+        <MapContent properties={properties} destinationCoords={destinationCoords} bookedPropertyIds={bookedPropertyIds} />
       </MapContainer>
     </div>
   );
